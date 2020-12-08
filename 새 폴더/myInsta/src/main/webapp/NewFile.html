@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script>
+            $(() => {
+                $(".non").on("click", function () {
+                   
+                    if ($(".hi").hasClass("on")) {
+                        $(".hi").removeClass("on");
+                    } else {
+                        $(".hi").addClass("on");
+                    }
+                    $(".hi").off();
+                });
+            });
+        </script>
+        <style>
+            .on {
+                background-color: red;
+            }
+        </style>
+    </head>
+    <body>
+        
+            <img alt="" style="height: 200px; width: 300px" src="D:/javaCros/mytomcat/myinsta/upload//20200715/105.dev">
+       
+    </body>
+</html>

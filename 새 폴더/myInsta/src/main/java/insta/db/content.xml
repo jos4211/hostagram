@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Content">
+
+	<select id="selectComment" resultType="com.koreait.CommentDTO" parameterType="int">
+	SELECT m_userid as coUserid, 
+	co_text as coText,
+	co_idx as coIdx,
+	co_Mcidx as coMcidx,
+	 
+	TIMESTAMPDIFF(MINUTE, NOW(),tb_comment.co_regdate) as coRegdate
+	FROM tb_comment JOIN tb_member 
+	ON m_idx=co_useridx WHERE co_mcidx=${mcidx};
+	</select>
+
+	<select id="selectContent" resultType="com.koreait.Content" parameterType="map">
+ 	SELECT mc_idx, m_userid as mc_useridx, 
+  	mc_content,mc_taggedid,mc_taggedname, 
+  	m_filepath as m_filepath,
+ 	TIMESTAMPDIFF(minute,mc_regdate,  NOW()) AS mc_regdate, mc_location, mc_imageurl 
+ 	FROM tb_mycontent JOIN tb_member on mc_useridx=m_idx 
+ 	JOIN tb_following ON mc_useridx=fi_followingid AND fi_useridx = #{useridx} 
+ 	ORDER BY tb_mycontent.mc_idx DESC LIMIT #{start}, 5;
+	</select>
+	
+	<select id="selectOneContent" resultType="com.koreait.Content" parameterType="_int">
+ 		SELECT mc_idx, m_userid as mc_useridx, mc_useridx as m_idx, 
+  	mc_content, mc_regdate, mc_location, mc_imageurl 
+ 	FROM tb_mycontent JOIN tb_member on mc_useridx=m_idx WHERE mc_idx = #{b_idx};
+	</select>
+
+	<insert id="insertComment" useGeneratedKeys="true" keyProperty="id" parameterType="map">
+  	INSERT INTO tb_comment(co_useridx, co_mcidx, co_text)
+  	VALUES (#{co_useridx}, #{co_mcidx}, #{co_text});
+	</insert>
+
+	<select id="selectSearch" resultType="com.koreait.SearchDTO" parameterType="map">
+  	SELECT mc_idx,
+	mc_imageurl FROM tb_mycontent  WHERE mc_taggedname LIKE #{tag} order by mc_idx desc LIMIT #{start}, 12 	;
+	</select>
+	<select id="selectCNTComment" resultType="String" parameterType="_int">
+ 	SELECT count(co_idx) FROM tb_comment WHERE co_mcidx=#{mcidx}
+	</select>
+	<insert id="insertFollowing" parameterType="map">
+  	INSERT INTO tb_following(fi_useridx, fi_followingid) VALUES(#{fi_useridx}, #{fi_followingid}) 
+	</insert>
+	<select id="selectMemberList" resultType="insta.member.MemberDTO" parameterType="_int">
+ 	SELECT m_idx, m_userid, m_username, m_filepath FROM tb_member
+	</select>
+	<select id="selectMemberLists" resultType="insta.member.MemberDTO" parameterType="_int">
+ 	SELECT m_idx, m_userid, m_username, m_filepath FROM tb_member LIMIT ${start}, 5
+	</select>
+	<select id="selectFollowingById" resultType="String" parameterType="int">
+  	SELECT count(fi_idx) FROM tb_following WHERE  fi_followingid = #{followingid} AND fi_useridx = #{useridx} 
+	</select>
+	<delete id="deleteFollowing" parameterType="map">
+    DELETE FROM tb_following WHERE fi_useridx = #{fi_useridx} AND fi_followingid = #{fi_followingid}
+	</delete>
+
+	<select id="selectCNTTag" resultType="String" parameterType="String">
+  	SELECT count(mc_idx)
+	FROM tb_mycontent  WHERE mc_taggedname LIKE #{tag}
+	</select>
+
+	<delete id="deleteComment" parameterType="int">
+    DELETE FROM tb_comment WHERE co_idx = #{co_idx}
+	</delete>
+	<select id="selectSearchMem" resultType="insta.member.MemberDTO" parameterType="String">
+  SELECT *
+	FROM tb_member WHERE concat(m_userid, m_username) LIKE '%${userStr}%'
+	ORDER BY case when m_userid like '${userStr}%' then 1 
+	when m_userid like '${userStr}%' then 2 
+	when m_username like '${userStr}%' then 2 
+	when m_userid LIKE '%${userStr}%' then 3 
+	when m_userid LIKE '%${userStr}' then 4 
+	ELSE 5 END 
+	</select>
+
+	<select id="selectMypageComment" resultType="com.koreait.Content" parameterType="int">
+	SELECT  mc_idx, mc_useridx, mc_imageurl FROM tb_mycontent WHERE mc_useridx = #{useridx} 
+	</select>
+
+	<select id="selectSaveContent" resultType="com.koreait.Content" parameterType="_int">
+   	SELECT s_useridx as mc_useridx, 
+   	mc_imageurl,mc_idx  FROM tb_save 
+    JOIN tb_mycontent ON tb_save.s_mcidx = mc_idx WHERE s_useridx=#{useridx}
+	</select>
+
+	<select id="selectTageContent" resultType="com.koreait.Content" parameterType="String">
+   	SELECT mc_idx, mc_imageurl FROM tb_mycontent WHERE mc_taggedid like "%@${taggedid},%"
+	</select>
+
+	<select id="selectOtherPage" resultType="insta.member.MemberDTO" parameterType="String">
+   	SELECT m_idx, m_username, m_intro FROM tb_member WHERE m_userid = #{userid}
+	</select>
+	<select id="selectCntFollower" resultType="_int" parameterType="_int">
+	SELECT COUNT(fi_idx) FROM tb_following 
+ 	JOIN tb_member m1 ON tb_following.fi_useridx = m1.m_idx
+ 	JOIN tb_member m2 ON tb_following.fi_followingid = m2.m_idx  WHERE fi_followingid = #{mIdx};
+	</select>
+	<select id="selectCntFollow" resultType="_int" parameterType="_int">
+	SELECT COUNT(fi_idx) FROM tb_following 
+ 	JOIN tb_member m1 ON tb_following.fi_useridx = m1.m_idx
+ 	JOIN tb_member m2 ON tb_following.fi_followingid = m2.m_idx  WHERE fi_useridx = #{mIdx};
+	</select>
+	<select id="selectContentsForIssue" resultType="com.koreait.SearchDTO">
+  	SELECT mc_idx,
+	mc_imageurl FROM tb_mycontent order by mc_idx desc LIMIT 0, 8 ;
+	</select>
+	<select id="selectCntContent" resultType="_int" parameterType="_int">
+	SELECT COUNT(mc_idx) FROM tb_mycontent where mc_useridx = #{userIdx}
+	</select>
+	<delete id="withdrawal" parameterType="_int">
+    DELETE FROM tb_member WHERE m_idx = #{idx}
+	</delete>
+</mapper>
